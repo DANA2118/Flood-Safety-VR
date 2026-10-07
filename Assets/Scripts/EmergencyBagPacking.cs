@@ -45,9 +45,15 @@ public class EmergencyBagPacking : MonoBehaviour
 
         if (progressText != null)
         {
-            progressText.text = count == 4
+            bool complete = count == 4;
+
+            progressText.text = complete
                 ? "Packed: 4/4\nComplete!"
                 : $"Packed: {count}/4";
+
+            progressText.color = complete
+                ? new Color(0.3f, 1f, 0.4f)
+                : Color.white;
         }
     }
 
