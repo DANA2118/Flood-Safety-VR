@@ -9,7 +9,7 @@ public class BedroomElectricalController : MonoBehaviour
     [Header("Switch States")]
     [SerializeField] private bool mainPowerOn = true;
     [SerializeField] private bool fanSwitchOn = true;
-    [SerializeField] private bool wallLightSwitchOn = true;
+    [SerializeField] private bool wallLightSwitchOn = false;
 
     public void ToggleFanSwitch()
     {
