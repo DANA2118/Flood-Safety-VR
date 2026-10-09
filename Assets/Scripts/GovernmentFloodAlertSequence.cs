@@ -5,6 +5,10 @@ public class GovernmentFloodAlertSequence : MonoBehaviour
 {
     [SerializeField] private AudioSource announcementSource;
     [SerializeField] private AudioSource sirenSource;
+
+    [Header("Flood System")]
+    [SerializeField] private FloodWaterController floodWaterController;
+
     [SerializeField] private float delayBeforeSiren = 0.3f;
 
     private IEnumerator Start()
@@ -18,16 +22,21 @@ public class GovernmentFloodAlertSequence : MonoBehaviour
         announcementSource.Stop();
         sirenSource.Stop();
 
-        // Government announcement first
+        // Start government flood announcement.
         announcementSource.Play();
 
-        // Wait until the announcement really finishes
+        // Start the flood countdown at EXACTLY the same time.
+        if (floodWaterController != null)
+        {
+            floodWaterController.BeginFloodCountdown();
+        }
+
+        // Wait until announcement finishes.
         yield return new WaitWhile(() => announcementSource.isPlaying);
 
-        // Small natural pause
         yield return new WaitForSeconds(delayBeforeSiren);
 
-        // Then start flood siren
+        // Start warning siren.
         sirenSource.Play();
     }
 
