@@ -63,6 +63,6 @@ public class MainsBreaker : MonoBehaviour
             mainsLight.enabled = isOn;
 
         foreach (Light emergencyLight in emergencyLights)
-            emergencyLight.enabled = !isOn;
+            emergencyLight.enabled = false;
     }
 }
