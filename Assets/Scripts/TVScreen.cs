@@ -2,38 +2,79 @@ using UnityEngine;
 
 public class TVScreen : MonoBehaviour
 {
+    [Header("Screen Materials")]
     [SerializeField] private Material onMaterial;
     [SerializeField] private Material offMaterial;
 
+    [Header("TV Power Plug")]
+    [SerializeField] private WallPlug tvPlug;
+
     private MeshRenderer screenRenderer;
-    private WallPlug[] plugs;
-    private bool on = true;
+    private bool mainPowerOn = true;
+    private bool previousScreenState;
+    private bool hasAppliedState;
+
+    private void Awake()
+    {
+        screenRenderer = GetComponent<MeshRenderer>();
+
+        if (screenRenderer == null)
+        {
+            Debug.LogError(
+                "TVScreen: This object needs a MeshRenderer.",
+                this
+            );
+
+            enabled = false;
+        }
+    }
 
     private void Start()
     {
-        screenRenderer = GetComponent<MeshRenderer>();
-        plugs = FindObjectsByType<WallPlug>(FindObjectsSortMode.None);
-        Apply();
+        if (tvPlug == null)
+        {
+            Debug.LogError(
+                "TVScreen: Assign the TV_WallPlug object.",
+                this
+            );
+        }
+
+        RefreshScreen();
     }
 
     private void Update()
     {
-        if (!on || plugs.Length == 0)
-            return;
-
-        foreach (WallPlug plug in plugs)
-        {
-            if (!plug.IsPulledOut)
-                return;
-        }
-
-        on = false;
-        Apply();
-        Debug.Log("[TVScreen] power off (plugs out)");
+        RefreshScreen();
     }
 
-    private void Apply()
+    public void SetMainPower(bool powerOn)
     {
-        screenRenderer.sharedMaterial = on ? onMaterial : offMaterial;
+        mainPowerOn = powerOn;
+        RefreshScreen();
+    }
+
+    private void RefreshScreen()
+    {
+        if (screenRenderer == null)
+            return;
+
+        bool screenOn =
+            mainPowerOn &&
+            tvPlug != null &&
+            !tvPlug.IsPulledOut;
+
+        if (hasAppliedState && screenOn == previousScreenState)
+            return;
+
+        Material targetMaterial =
+            screenOn ? onMaterial : offMaterial;
+
+        if (targetMaterial == null)
+            return;
+
+        screenRenderer.sharedMaterial = targetMaterial;
+
+        previousScreenState = screenOn;
+        hasAppliedState = true;
     }
 }
