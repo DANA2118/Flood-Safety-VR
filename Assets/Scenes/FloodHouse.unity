@@ -3830,8 +3830,8 @@ MonoBehaviour:
   waterSurface: {fileID: 1988281557}
   startY: -0.15
   targetY: 1.45
-  startDelay: 2
-  riseDuration: 30
+  startDelay: 20
+  riseDuration: 600
 --- !u!4 &1148289664
 Transform:
   m_ObjectHideFlags: 0
