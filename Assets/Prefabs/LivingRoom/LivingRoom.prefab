@@ -3503,8 +3503,7 @@ MonoBehaviour:
   - {fileID: 5000000990}
   - {fileID: 5000001620}
   - {fileID: 5000001680}
-  emergencyLights:
-  - {fileID: 5000001790}
+  emergencyLights: []
 --- !u!1 &5000001510
 GameObject:
   m_ObjectHideFlags: 0
