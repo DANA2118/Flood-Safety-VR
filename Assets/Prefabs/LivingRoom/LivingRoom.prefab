@@ -5914,7 +5914,7 @@ Transform:
   m_GameObject: {fileID: 5000002320}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.95, y: 0.48, z: -2.7}
+  m_LocalPosition: {x: -2.05, y: 0.481, z: -2.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5945,7 +5945,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 2
@@ -6191,7 +6191,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.34, y: 0.03, z: 0.24}
+  m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5000002400
 GameObject:
@@ -6220,13 +6220,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5000002400}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.21644, y: 0, z: 0, w: 0.9763}
-  m_LocalPosition: {x: 0, y: 0.13, z: -0.166}
+  m_LocalRotation: {x: -0.258819, y: 0, z: 0, w: 0.9659258}
+  m_LocalPosition: {x: 0, y: 0.125, z: -0.175}
   m_LocalScale: {x: 0.32, y: 0.22, z: 0.02}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5000002330}
-  m_LocalEulerAnglesHint: {x: -25, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -30, y: 0, z: 0}
 --- !u!33 &5000002420
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -6303,7 +6303,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.32, y: 0.22, z: 0.02}
+  m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5000002460
 GameObject:
