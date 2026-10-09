@@ -1,7 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
-using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class FloodTaskManager : MonoBehaviour
 {
@@ -25,214 +23,203 @@ public class FloodTaskManager : MonoBehaviour
     [SerializeField] private Transform safeRoomTaskPanelPoint;
 
     [Header("Safe Room")]
-    [SerializeField] private XRSocketInteractor emergencyBagSocket;
+    [SerializeField] private SafeRoomCupboard safeRoomCupboard;
 
     private enum Stage
     {
         None,
         Packing,
         StoreBag,
-        Valuables
+        Valuables,
+        StorageComplete
     }
 
     private Stage currentStage = Stage.None;
-    private int lastCount = -1;
-
-    private XRGrabInteractable bagGrab;
-    private Vector3 startingPanelPosition;
-    private Quaternion startingPanelRotation;
+    private Vector3 startingPosition;
+    private Quaternion startingRotation;
+    private bool reachedSafeRoom;
+    private bool initialized;
 
     private void Start()
     {
-        if (bagPacking == null ||
-            packingInstructions == null ||
-            packingProgress == null ||
-            objectiveText == null ||
-            locationText == null ||
-            instructionText == null ||
-            progressText == null ||
-            hintText == null ||
-            taskPanel == null ||
-            kitchenTaskPanelPoint == null ||
-            safeRoomTaskPanelPoint == null ||
-            emergencyBagSocket == null)
-        {
-            Debug.LogError(
-                "FloodTaskManager: Assign all Inspector fields.",
-                this
-            );
+        bool valid = true;
 
+        valid &= Check(bagPacking, "Bag Packing");
+        valid &= Check(packingInstructions, "Packing Instructions");
+        valid &= Check(packingProgress, "Packing Progress");
+        valid &= Check(objectiveText, "Objective Text");
+        valid &= Check(locationText, "Location Text");
+        valid &= Check(instructionText, "Instruction Text");
+        valid &= Check(progressText, "Progress Text");
+        valid &= Check(hintText, "Hint Text");
+        valid &= Check(taskPanel, "Task Panel");
+        valid &= Check(kitchenTaskPanelPoint, "Kitchen Task Panel Point");
+        valid &= Check(safeRoomTaskPanelPoint, "Safe Room Task Panel Point");
+        valid &= Check(safeRoomCupboard, "Safe Room Cupboard");
+
+        if (!valid)
+        {
             enabled = false;
             return;
         }
 
-        bagGrab = bagPacking.GetComponent<XRGrabInteractable>();
+        startingPosition = taskPanel.position;
+        startingRotation = taskPanel.rotation;
 
-        if (bagGrab == null)
-        {
-            Debug.LogError(
-                "FloodTaskManager: The bag needs XR Grab Interactable.",
-                this
-            );
-
-            enabled = false;
-            return;
-        }
-
-        startingPanelPosition = taskPanel.position;
-        startingPanelRotation = taskPanel.rotation;
-
+        taskPanel.gameObject.SetActive(true);
         hintText.gameObject.SetActive(false);
+        initialized = true;
     }
 
-    private void Update()
+    private bool Check(UnityEngine.Object value, string field)
     {
-        int count = bagPacking.PackedCount;
+        if (value != null)
+            return true;
+
+        Debug.LogError(
+            $"FloodTaskManager: Assign '{field}' in the Inspector.",
+            this
+        );
+        return false;
+    }
+
+    private void LateUpdate()
+    {
+        if (!initialized)
+            return;
+
+        if (safeRoomCupboard.BagStored)
+            reachedSafeRoom = true;
 
         Stage nextStage;
 
-        if (count < 4)
+        if (bagPacking.PackedCount < 4)
             nextStage = Stage.Packing;
-        else if (IsBagStored())
+        else if (!safeRoomCupboard.BagStored)
+            nextStage = Stage.StoreBag;
+        else if (!safeRoomCupboard.AllStored)
             nextStage = Stage.Valuables;
         else
-            nextStage = Stage.StoreBag;
+            nextStage = Stage.StorageComplete;
 
-        bool stageChanged = nextStage != currentStage;
-
-        if (!stageChanged && count == lastCount)
-            return;
-
-        Stage previousStage = currentStage;
-        currentStage = nextStage;
-        lastCount = count;
-
-        packingInstructions.SetActive(
-            currentStage == Stage.Packing
-        );
-
-        packingProgress.SetActive(
-            currentStage == Stage.Packing
-        );
-
-        if (stageChanged)
+        if (nextStage != currentStage)
         {
+            currentStage = nextStage;
+
+            taskPanel.gameObject.SetActive(true);
             hintText.gameObject.SetActive(false);
 
-            if (currentStage == Stage.Packing)
+            bool packing = currentStage == Stage.Packing;
+            packingInstructions.SetActive(packing);
+            packingProgress.SetActive(packing);
+
+            if (packing)
             {
                 taskPanel.SetPositionAndRotation(
-                    startingPanelPosition,
-                    startingPanelRotation
+                    startingPosition,
+                    startingRotation
                 );
-            }
-            else if (currentStage == Stage.Valuables)
-            {
-                MovePanel(safeRoomTaskPanelPoint);
             }
             else
             {
-                // If the player removes the stored bag,
-                // keep the reminder upstairs.
-                MovePanel(
-                    previousStage == Stage.Valuables
-                        ? safeRoomTaskPanelPoint
-                        : kitchenTaskPanelPoint
+                Transform point =
+                    currentStage == Stage.StoreBag && !reachedSafeRoom
+                        ? kitchenTaskPanelPoint
+                        : safeRoomTaskPanelPoint;
+
+                taskPanel.SetPositionAndRotation(
+                    point.position,
+                    point.rotation
                 );
             }
         }
 
-        RefreshText(count);
+        RefreshText();
     }
 
-    private bool IsBagStored()
+    public void ShowHint()
     {
-        if (!bagPacking.IsSealed ||
-            bagPacking.PackedCount != 4 ||
-            !emergencyBagSocket.isActiveAndEnabled ||
-            !emergencyBagSocket.hasSelection)
-        {
-            return false;
-        }
-
-        // Verify that this socket holds the actual emergency bag.
-        // It must not also be held by another interactor.
-        return emergencyBagSocket.firstInteractableSelected
-                   == (IXRSelectInteractable)bagGrab
-            && bagGrab.interactorsSelecting.Count == 1;
+        if (hintText != null)
+            hintText.gameObject.SetActive(true);
     }
 
-    private void MovePanel(Transform destination)
+    public void HideHint()
     {
-        taskPanel.SetPositionAndRotation(
-            destination.position,
-            destination.rotation
-        );
+        if (hintText != null)
+            hintText.gameObject.SetActive(false);
     }
 
-    private void RefreshText(int count)
+    private void SetText(
+        string objective,
+        string location,
+        string instruction,
+        string progress,
+        string hint)
+    {
+        objectiveText.text = objective;
+        locationText.text = location;
+        instructionText.text = instruction;
+        progressText.text = progress;
+        hintText.text = hint;
+    }
+
+    private void RefreshText()
     {
         progressText.color = Color.white;
 
         switch (currentStage)
         {
             case Stage.Packing:
-                objectiveText.text =
-                    "CURRENT TASK: Pack your emergency bag";
-
-                locationText.text = "Location: Kitchen";
-
-                instructionText.text =
+                SetText(
+                    "CURRENT TASK: Pack your emergency bag",
+                    "Location: Kitchen",
                     "Place and release the water bottle, medicine, " +
-                    "torch, and document pouch inside the bag.";
-
-                progressText.text =
-                    $"Progress: {count} of 4 packed";
-
-                hintText.text =
-                    "Release each item inside the bag. " +
-                    "Items held in your hand do not count.";
+                    "torch, and document pouch inside the bag.",
+                    $"Progress: {bagPacking.PackedCount} of 4 packed",
+                    "Release each supply inside the bag. " +
+                    "Once all four are packed, grab the bag " +
+                    "to secure its contents."
+                );
                 break;
 
             case Stage.StoreBag:
-                objectiveText.text =
-                    "CURRENT TASK: Store your emergency bag";
-
-                locationText.text =
-                    "Location: Upstairs safe room";
-
-                instructionText.text =
-                    "Carry the packed bag upstairs. Place it in " +
-                    "the cupboard's bag slot and release it.";
-
-                progressText.text =
-                    "Essentials packed: 4 of 4 | Bag not stored";
-
-                hintText.text =
-                    "Use the emergency-bag slot in the safe-room " +
-                    "cupboard. Let go so the bag snaps into place.";
+                SetText(
+                    "CURRENT TASK: Store your emergency bag",
+                    "Location: Upstairs safe room",
+                    "Place the packed bag fully inside the " +
+                    "bottom-right cupboard compartment and release it.",
+                    "Essentials packed: 4/4 | Bag not stored",
+                    "Rest the bag on the cupboard floor. " +
+                    "Keep it fully inside, then release it " +
+                    "and wait a moment."
+                );
                 break;
 
             case Stage.Valuables:
-                objectiveText.text =
-                    "CURRENT TASK: Move your valuables";
+                SetText(
+                    "CURRENT TASK: Store your valuables",
+                    "Location: Upstairs safe room",
+                    safeRoomCupboard.GetValuablesChecklist(),
+                    $"Valuables stored: " +
+                    $"{safeRoomCupboard.ValuablesStoredCount}/4",
+                    "Collect both laptops, the phone, and documents " +
+                    "box. Release each fully inside a compartment " +
+                    "where it fits."
+                );
+                break;
 
-                locationText.text =
-                    "Location: Bring items to the upstairs safe room";
+            case Stage.StorageComplete:
+                SetText(
+                    "COMPLETED: Emergency items stored",
+                    "Location: Upstairs safe room",
+                    "Your emergency bag and four valuables " +
+                    "are stored in the cupboard.",
+                    "Items stored: 5/5",
+                    "The bag remains grabbable so you can " +
+                    "collect it before leaving."
+                );
 
-                instructionText.text =
-                    "Bring both laptops, the guitar, phone, radio, " +
-                    "and documents box to their cupboard slots.";
-
-                progressText.text =
-                    "Emergency bag stored successfully";
-
-                progressText.color =
-                    new Color(0.3f, 1f, 0.4f);
-
-                hintText.text =
-                    "Collect the valuables from the bedroom and " +
-                    "living room. Release each in its matching slot.";
+                progressText.color = new Color(0.3f, 1f, 0.4f);
                 break;
         }
     }
