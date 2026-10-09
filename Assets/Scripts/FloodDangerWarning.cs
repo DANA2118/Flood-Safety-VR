@@ -1,96 +1,184 @@
 using UnityEngine;
+using TMPro;
 
 public class FloodDangerWarning : MonoBehaviour
 {
-    [Header("References")]
+    [Header("Flood")]
     [SerializeField] private FloodWaterController floodWaterController;
+
+    [Header("Player")]
+    [SerializeField] private Transform playerRoot;
     [SerializeField] private CharacterController characterController;
-    [SerializeField] private CanvasGroup warningCanvas;
-    [SerializeField] private AudioSource warningAlarm;
 
     [Header("Floor Detection")]
     [SerializeField] private float upperFloorHeight = 2.75f;
 
-    [Header("Warning Pulse")]
-    [SerializeField] private float minimumAlpha = 0.10f;
-    [SerializeField] private float maximumAlpha = 0.75f;
-    [SerializeField] private float pulseSpeed = 3.0f;
+    [Header("Danger Warning")]
+    [SerializeField] private CanvasGroup dangerCanvas;
+    [SerializeField] private AudioSource dangerAlarm;
+    [SerializeField] private TMP_Text dangerText;
 
-    private bool warningActive;
+    [SerializeField] private float pulseSpeed = 3f;
+
+    [Header("Death / Respawn")]
+    [SerializeField] private float deathTime = 10f;
+    [SerializeField] private Transform respawnPoint;
+
+    private float dangerTimer = 0f;
+    private bool warningActive = false;
+    private bool isRespawning = false;
 
     private void Start()
     {
-        if (warningCanvas != null)
-            warningCanvas.alpha = 0f;
+        if (dangerCanvas != null)
+            dangerCanvas.alpha = 0f;
 
-        if (warningAlarm != null)
-            warningAlarm.Stop();
+        if (dangerAlarm != null)
+            dangerAlarm.Stop();
+
+        dangerTimer = 0f;
     }
 
     private void Update()
     {
         if (floodWaterController == null ||
             characterController == null ||
-            warningCanvas == null)
+            playerRoot == null)
         {
             return;
         }
 
-        bool waterReachedDangerLevel =
-            floodWaterController.HasReachedDangerLevel;
-
-        // Player's feet position.
-        float playerFeetY =
-            characterController.bounds.min.y;
+        float playerFeetY = characterController.bounds.min.y;
 
         bool playerIsOnUpperFloor =
             playerFeetY >= upperFloorHeight;
 
-        bool shouldWarn =
-            waterReachedDangerLevel &&
+        bool floodIsDangerous =
+            floodWaterController.HasReachedDangerLevel;
+
+        bool playerInDanger =
+            floodIsDangerous &&
             !playerIsOnUpperFloor;
 
-        if (shouldWarn)
+        if (playerInDanger && !isRespawning)
         {
-            ShowWarning();
+            ActivateDanger();
+            UpdateDangerTimer();
         }
         else
         {
-            HideWarning();
+            DeactivateDanger();
+            ResetDangerTimer();
         }
     }
 
-    private void ShowWarning()
+    private void ActivateDanger()
     {
-        float pulse =
-            (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f;
-
-        warningCanvas.alpha =
-            Mathf.Lerp(
-                minimumAlpha,
-                maximumAlpha,
-                pulse
-            );
-
         if (!warningActive)
         {
             warningActive = true;
 
-            if (warningAlarm != null)
-                warningAlarm.Play();
+            if (dangerAlarm != null && !dangerAlarm.isPlaying)
+            {
+                dangerAlarm.Play();
+            }
+        }
+
+        if (dangerCanvas != null)
+        {
+            float pulse =
+                (Mathf.Sin(Time.time * pulseSpeed) + 1f) / 2f;
+
+            dangerCanvas.alpha =
+                Mathf.Lerp(0.10f, 0.75f, pulse);
         }
     }
 
-    private void HideWarning()
+    private void DeactivateDanger()
     {
-        warningCanvas.alpha = 0f;
+        if (!warningActive)
+            return;
 
-        if (warningActive)
+        warningActive = false;
+
+        if (dangerCanvas != null)
+            dangerCanvas.alpha = 0f;
+
+        if (dangerAlarm != null && dangerAlarm.isPlaying)
+            dangerAlarm.Stop();
+    }
+
+    private void UpdateDangerTimer()
+    {
+        dangerTimer += Time.deltaTime;
+
+        float timeRemaining =
+            Mathf.Max(0f, deathTime - dangerTimer);
+
+        if (dangerText != null)
         {
-            warningActive = false;
-
-            if (warningAlarm != null)
-                warningAlarm.Stop();
+            dangerText.text =
+                "DANGER!\n" +
+                "MOVE TO THE UPPER FLOOR\n\n" +
+                "DROWNING IN " +
+                Mathf.CeilToInt(timeRemaining) +
+                " SECONDS";
         }
+
+        if (dangerTimer >= deathTime)
+        {
+            RespawnPlayer();
+        }
+    }
+
+    private void ResetDangerTimer()
+    {
+        dangerTimer = 0f;
+
+        if (dangerText != null)
+        {
+            dangerText.text =
+                "DANGER!\n" +
+                "MOVE TO THE UPPER FLOOR";
+        }
+    }
+
+    private void RespawnPlayer()
+    {
+        if (isRespawning)
+            return;
+
+        isRespawning = true;
+
+        Debug.Log("Player drowned. Respawning...");
+
+        if (dangerAlarm != null)
+            dangerAlarm.Stop();
+
+        if (dangerCanvas != null)
+            dangerCanvas.alpha = 0f;
+
+        if (respawnPoint == null)
+        {
+            Debug.LogError(
+                "FloodDangerWarning: Respawn Point is missing!"
+            );
+
+            isRespawning = false;
+            return;
+        }
+
+        // Temporarily disable CharacterController
+        // so Unity allows us to teleport the XR Origin.
+        characterController.enabled = false;
+
+        playerRoot.position = respawnPoint.position;
+        playerRoot.rotation = respawnPoint.rotation;
+
+        characterController.enabled = true;
+
+        dangerTimer = 0f;
+        warningActive = false;
+        isRespawning = false;
     }
 }
