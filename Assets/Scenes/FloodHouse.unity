@@ -318,6 +318,70 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3175989}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &21211552
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 21211553}
+  - component: {fileID: 21211554}
+  m_Layer: 0
+  m_Name: FloodScoringEngine
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &21211553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21211552}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &21211554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21211552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f066c9934db1cf468c30504f9f413cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FloodScoringEngine
+  bagPacking: {fileID: 356947655}
+  safeRoomCupboard: {fileID: 1695789309}
+  tvPlug: {fileID: 1787116035}
+  mainsBreaker: {fileID: 1023107501}
+  rescueBoatController: {fileID: 1483216681}
+  floodWaterController: {fileID: 1148289663}
+  bedroomTorch: {fileID: 2022672833}
+  verandaZone: {fileID: 571253851}
+  playerHead: {fileID: 1373153111}
+  characterController: {fileID: 1373153108}
+  introGraceSeconds: 6
+  excellentCompletionSeconds: 300
+  maximumCompletionSeconds: 600
+  scoreScreenDelay: 1.5
+  fallbackUpperFloorHeight: 2.5
+  fallbackDrowningSeconds: 10
+  exposureForMaximumPenalty: 30
+  marksPerDrowningRespawn: 10
+  endGameAtEnd: 1
+  stopAudioAtEnd: 1
 --- !u!1 &30754761
 GameObject:
   m_ObjectHideFlags: 0
@@ -5188,7 +5252,7 @@ MonoBehaviour:
   startY: -0.15
   targetY: 1.45
   startDelay: 20
-  riseDuration: 720
+  riseDuration: 600
 --- !u!4 &1148289664
 Transform:
   m_ObjectHideFlags: 0
@@ -12146,3 +12210,4 @@ SceneRoots:
   - {fileID: 1483216682}
   - {fileID: 2022672836}
   - {fileID: 2144747067}
+  - {fileID: 21211553}
