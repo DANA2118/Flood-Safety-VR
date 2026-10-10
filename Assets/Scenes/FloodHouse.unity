@@ -7621,7 +7621,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StartupControlsUI
   controlsPanel: {fileID: 274730435}
-  displayDuration: 8
+  displayDuration: 10
   fadeDuration: 0.75
 --- !u!1 &1548251155
 GameObject:
